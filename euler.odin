@@ -280,7 +280,7 @@ problems := [?]proc() {
                 result *= n
                 x += dx
                 y += dy
-            }
+            } 
             return result
         }
 
@@ -295,7 +295,9 @@ problems := [?]proc() {
         }
 
         fmt.println(result)
-    }
+    },
+
+    12 = {}
 }
 
 main :: proc() {
