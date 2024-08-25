@@ -195,10 +195,19 @@ problems := []proc() {
         }
 
         fmt.println(result)
-    }
+    },
 
     9 = proc() {
-        
+        for a in 1..=1000 {
+            for b in 1..=1000-a {
+                for c in 1..=1000-a-b {
+                    if a+b+c == 1000 && a*a + b*b == c*c {
+                        fmt.println(a*b*c)
+                        return
+                    }
+                }
+            }
+        }
     }
 }
 
