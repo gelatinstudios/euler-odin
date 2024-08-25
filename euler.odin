@@ -9,15 +9,22 @@ import "core:path/filepath"
 import "core:unicode"
 import ba "core:container/bit_array"
 
-// 0 = prime, 1 = NOT prime
 prime_sieve :: proc(n: int) -> (result: ba.Bit_Array) {
-    ba.set(&result, 0)
-    ba.set(&result, 1)
+    for i in 0..<n {
+        ba.set(&result, i)
+    }
+
+    ba.unset(&result, 0)
+    ba.unset(&result, 1)
+
+    for i := 4; i < n; i += 2 {
+        ba.unset(&result, i)
+    }
 
     for i := 3; i <= n/i; i += 2 {
-        if !ba.get(&result, i) {
+        if ba.get(&result, i) {
             for j := i*i; j <= n; j += i {
-                ba.set(&result, j)
+                ba.unset(&result, j)
             }
         }
     }
@@ -208,6 +215,19 @@ problems := []proc() {
                 }
             }
         }
+    },
+
+    10 = proc() {
+        sieve := prime_sieve(2_000_000)
+
+        sum := 0
+
+        it := ba.make_iterator(&sieve)
+        for n in ba.iterate_by_set(&it) {
+            sum += n
+        }
+
+        fmt.println(sum)
     }
 }
 
