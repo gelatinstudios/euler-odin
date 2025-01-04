@@ -5,10 +5,12 @@ import "core:os"
 import "core:strconv"
 import "core:fmt"
 import "core:math"
+import "core:math/big"
 import "core:strings"
 import "core:path/filepath"
 import "core:unicode"
 import ba "core:container/bit_array"
+import sa "core:container/small_array"
 
 prime_sieve :: proc(n: int) -> (result: ba.Bit_Array) {
     for i in 0..<n {
@@ -30,6 +32,25 @@ prime_sieve :: proc(n: int) -> (result: ba.Bit_Array) {
         }
     }
 
+    return result
+}
+
+factor_iter :: proc(N: int, n: ^int) -> (int, bool) {
+    n^ += 1
+    for ; n^ <= N; n^ += 1 {
+        if N % n^ == 0 {
+            return n^, true
+        }
+    }
+    return 0, false
+}
+
+count_factors :: proc(n: int) -> int {
+    result := 0
+    it := 0
+    for _ in factor_iter(n, &it) {
+        result += 1
+    }
     return result
 }
 
@@ -297,15 +318,69 @@ problems := [?]proc() {
         fmt.println(result)
     },
 
-    12 = {}
+    12 = proc() {
+        N :: 500
+
+        // generate numbers using prime factors
+        // 17 is an arbitrarily guessed prime to stop at
+        // not sure how you would calculate it
+        primes := [?]int {2, 3, 5, 7, 11, 13, 17}
+        powers: [len(primes)]int
+        
+        lowest := max(int)
+
+        outer_loop: for {
+            i := 0
+            for {
+                powers[i] += 1
+                if powers[i] == 6 {
+                    powers[i] = 0
+                    i += 1
+                    if i == len(primes) {
+                        break outer_loop
+                    }
+                } else {
+                    break
+                }
+            }
+
+            n := 1
+            for prime, i in primes {
+                for _ in 0..<powers[i] {
+                    n *= prime
+                }
+            }
+
+            divisor_count := 1
+            for p in powers {
+                divisor_count *= p + 1
+            }
+
+            if divisor_count > N {
+                // check if triangle number
+                // tri = (n*(n-1))/2
+                // n = sqrt(8*tri + 1)/2
+                // therefore, if 8*n + 1 must be a square
+                t := 8*n + 1
+                m := int(math.sqrt(f64(t)))
+                if m*m == t && n < lowest {
+                    lowest = n
+                }
+            }
+        }
+
+        fmt.println(lowest)
+    },
 }
 
 main :: proc() {
     usage :: proc() {
+        n := len(problems)-1
         exe := filepath.base(os.args[0])
-        fmt.printfln("usage: {} NUM", exe)
+        fmt.printfln("usage: {} [NUM/?]", exe)
         fmt.println ("    NUM - euler problem")
-        fmt.println ("          must be int from 1 to", len(problems)-1)
+        fmt.println ("          must be int from 1 to", n)
+        fmt.println ("    ?   - show what problems between 1 and", n, "are not done")
         os.exit(0)
     }
 
@@ -313,18 +388,27 @@ main :: proc() {
         usage()
     }
 
-    index, ok := strconv.parse_int(os.args[1])
+    if os.args[1] == "?" {
+        for problem, i in problems[1:] {
+            index := i+1
+            if problem == nil {
+                fmt.eprintln(index, "has not been solved yet :(")
+            }
+        }
+    } else {
+        index, ok := strconv.parse_int(os.args[1])
 
-    if !ok || index <= 0 || index >= len(problems) {
-        usage()
+        if !ok || index <= 0 || index >= len(problems) {
+            usage()
+        }
+        
+        problem := problems[index]
+
+        if problem == nil {
+            fmt.eprintln(index, "has not been solved yet :(")
+            return
+        }
+
+        problem()
     }
-    
-    problem := problems[index]
-
-    if problem == nil {
-        fmt.eprintln(index, "has not been solved yet :(")
-        return
-    }
-
-    problem()
 }
