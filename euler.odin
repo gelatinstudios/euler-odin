@@ -106,8 +106,8 @@ problems := [?]proc() {
     4 = proc() {
         get_digit :: proc(n, digit: int) -> int {
             @(static, rodata) pow10_tab := [?]int{
-                1e00, 1e01, 1e02, 1e03, 1e04, 1e05, 1e06, 1e07, 1e08, 1e09,
-                1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16,
+                1e00, 1e01, 1e02, 1e03, 1e04, 1e05, 1e06, 1e07, 
+                1e08, 1e09, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16,
             }
             return (n / pow10_tab[digit]) % 10
         }
@@ -513,8 +513,9 @@ problems := [?]proc() {
 
     15 = proc() {
         // https://en.wikipedia.org/wiki/Lattice_path
-        // 40! / (20!20!)
-        
+        // should be bin coeff (40, 20)
+        //  = 40! / (20!20!)
+
         num: big.Int
         big.factorial(&num, 40)
 
@@ -525,6 +526,70 @@ problems := [?]proc() {
         big.div(&num, &num, &denom)
 
         fmt.println(big.itoa(&num)or_else"")
+    },
+
+    16 = proc() {
+        // once again just using the bigint library
+        n: big.Int
+        big.one(&n)
+        big.shl(&n, &n, 1000)
+        s := big.itoa(&n) or_else ""
+
+        sum := 0
+        for n in transmute([]u8)s {
+            sum += int(n - '0')
+        }
+        fmt.println(sum)
+    },
+
+    17 = proc() {
+        ones := [?]string{"", "one", "two", "three", "four", "five", 
+                          "six", "seven", "eight", "nine",
+                          "ten", "eleven", "twelve", "thirteen", "fourteen",
+                          "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"}
+        tens := [10]string{"", "", "twenty", "thirty", "forty", "fifty", 
+                           "sixty", "seventy", "eighty", "ninety"}
+
+        sum := 0
+
+        for n in 1 ..= 1000 {
+            n := n
+            sb: strings.Builder
+
+            if n >= 1000 {
+                strings.write_string(&sb, ones[n/1000])
+                strings.write_string(&sb, " thousand ")
+                n %= 1000
+            }
+
+            if n >= 100 {
+                strings.write_string(&sb, ones[n/100])
+                strings.write_string(&sb, " hundred ")
+                n %= 100
+
+                if n != 0 {
+                    strings.write_string(&sb, "and ")
+                }
+            }
+
+            if n >= 20 {
+                strings.write_string(&sb, tens[n/10])
+                n %= 10
+                if n > 0 {
+                    strings.write_rune(&sb, '-')
+                }
+            }
+
+            strings.write_string(&sb, ones[n])
+
+            for c in strings.to_string(sb) {
+                if c >= 'a' && c <= 'z' {
+                    sum += 1
+                }
+            }
+        }
+
+        fmt.println(sum)
     },
 }
 
